@@ -1,0 +1,56 @@
+{
+  "$schema": "./plugin.schema.json",
+  "id": "io.github.bellussi1.isbn-brasil",
+  "name": "ISBN Brasil",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.6.0",
+  "description": "Brazilian ISBN metadata (CBL / Mercado Editorial) via BrasilAPI, with fallback covers",
+  "author": "Enzo Bellussi",
+  "homepage": "https://github.com/bellussi1/dalibre-isbn-brasil",
+  "license": "MIT",
+  "icon": "bookmark",
+  "capabilities": {
+    "metadata": {
+      "fields": [
+        "title",
+        "authors",
+        "tags",
+        "publisher",
+        "pubdate",
+        "language",
+        "identifiers",
+        "cover",
+        "description"
+      ]
+    }
+  },
+  "permissions": {
+    "hosts": [
+      "archive.org",
+      "*.archive.org",
+      "brasilapi.com.br",
+      "covers.openlibrary.org",
+      "openlibrary.org",
+      "www.googleapis.com"
+    ],
+    "covers": "any",
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "searchByTitle",
+      "title": "Search by title and author when ISBN is missing",
+      "type": "toggle",
+      "default": "true",
+      "description": "Discovers Brazilian ISBNs (978-65 / 978-85) using Open Library and Google Books before querying BrasilAPI."
+    },
+    {
+      "key": "fallbackCover",
+      "title": "Look up missing covers and synopses in Open Library",
+      "type": "toggle",
+      "default": "true",
+      "description": "Used only when BrasilAPI has no cover URL or synopsis for the edition."
+    }
+  ]
+}
