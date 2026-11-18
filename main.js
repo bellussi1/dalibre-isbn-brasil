@@ -132,6 +132,21 @@ async function discoverBrazilianISBNs(title, authors) {
         for (const raw of doc?.isbn ?? []) found.push(String(raw));
       }
     }
+
+    // Translated or combined search-box queries (e.g. "Condição Artificial Martha Wells")
+    // often match edition titles/works only in Open Library's free-text `q` index.
+    if (rankBrazilianISBNs(found).length === 0) {
+      const q = firstAuthor ? `${title} ${firstAuthor}` : title;
+      const qRes = await fetch(`${OPENLIBRARY}/search.json?${new URLSearchParams({ q, fields: "title,author_name,isbn", limit: "10" })}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (qRes.ok) {
+        const qData = await qRes.json();
+        for (const doc of qData?.docs ?? []) {
+          for (const raw of doc?.isbn ?? []) found.push(String(raw));
+        }
+      }
+    }
   } catch {
     // Fall through to Google Books discovery.
   }

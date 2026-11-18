@@ -219,6 +219,65 @@ function jsonResponse(body, status = 200) {
   const gbOut = await identify({ title: "Tudo é rio", authors: ["Carla Madeira"], identifiers: {} });
   assert.equal(gbOut.length, 1);
   assert.equal(gbOut[0].identifiers.isbn, "9786555871784");
+
+  // Open Library free-text (?q=) fallback when ?title= finds only an editionless translated work
+  globalThis.fetch = async (url) => {
+    const u = new URL(String(url));
+    if (u.origin === "https://openlibrary.org" && u.pathname === "/search.json") {
+      if (u.searchParams.has("title")) {
+        return jsonResponse({ docs: [{ key: "/works/OL44197921W", title: "Condição artificial" }] });
+      }
+      if (u.searchParams.get("q") === "Condição Artificial Martha Wells") {
+        return jsonResponse({
+          docs: [{ key: "/works/OL19747311W", title: "Artificial Condition", isbn: ["9788576577263", "9781250186935"] }],
+        });
+      }
+    }
+    if (u.href === "https://brasilapi.com.br/api/isbn/v1/9788576577263") {
+      return jsonResponse({
+        isbn: "9788576577263",
+        title: "Condição artificial",
+        authors: ["Martha Wells", "Laura Pohl"],
+        publisher: "Editora Aleph",
+        synopsis: "Continuação de Alerta Vermelho.",
+        cover_url: "https://covers.openlibrary.org/b/id/15129488-L.jpg",
+        provider: "cbl",
+      });
+    }
+    throw new Error(`Unexpected URL in OL free-text test: ${u.href}`);
+  };
+  const olQOut = await identify({ title: "Condição Artificial", authors: ["Martha Wells"], identifiers: {} });
+  assert.equal(olQOut.length, 1);
+  assert.equal(olQOut[0].identifiers.isbn, "9788576577263");
+  assert.equal(olQOut[0].publisher, "Editora Aleph");
+
+  // Search-box combined query ("Condição Artificial Martha Wells", empty authors)
+  globalThis.fetch = async (url) => {
+    const u = new URL(String(url));
+    if (u.origin === "https://openlibrary.org" && u.pathname === "/search.json") {
+      if (u.searchParams.has("title")) return jsonResponse({ docs: [] });
+      if (u.searchParams.get("q") === "Condição Artificial Martha Wells") {
+        return jsonResponse({
+          docs: [{ key: "/works/OL19747311W", title: "Artificial Condition", isbn: ["9788576577263"] }],
+        });
+      }
+    }
+    if (u.href === "https://brasilapi.com.br/api/isbn/v1/9788576577263") {
+      return jsonResponse({
+        isbn: "9788576577263",
+        title: "Condição artificial",
+        authors: ["Martha Wells"],
+        publisher: "Editora Aleph",
+        synopsis: "Sinopse.",
+        cover_url: "https://covers.example.com/cond.jpg",
+        provider: "cbl",
+      });
+    }
+    throw new Error(`Unexpected URL in search-box test: ${u.href}`);
+  };
+  const boxOut = await identify({ title: "Condição Artificial Martha Wells", authors: [], identifiers: {} });
+  assert.equal(boxOut.length, 1);
+  assert.equal(boxOut[0].identifiers.isbn, "9788576577263");
 }
 
 // 5. Settings (searchByTitle: false, fallbackCover: false), 404 -> [], and 429 -> rateLimited

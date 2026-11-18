@@ -2,7 +2,7 @@
   "$schema": "./plugin.schema.json",
   "id": "io.github.bellussi1.isbn-brasil",
   "name": "ISBN Brasil",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "api": 1,
   "dalibre": ">=0.6.0",
   "description": "Brazilian ISBN metadata (CBL / Mercado Editorial) via BrasilAPI, with fallback covers",
